@@ -1,0 +1,15 @@
+{
+  "modality": [
+    "CT",
+    "MRI",
+    "fMRI"
+  ],
+  "regions": [
+    "frontal lobe",
+    "temporal lobe"
+  ],
+  "findings": [
+    "hemorrhage"
+  ],
+  "laterality": []
+}

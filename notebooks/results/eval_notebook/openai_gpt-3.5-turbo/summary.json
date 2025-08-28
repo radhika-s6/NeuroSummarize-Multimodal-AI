@@ -1,0 +1,28 @@
+{
+  "agg": {
+    "model": "openai:gpt-3.5-turbo",
+    "n": 0,
+    "rouge_l_clin": [],
+    "bleu_clin": [],
+    "rouge_l_lay": [],
+    "bleu_lay": [],
+    "entity_p": [],
+    "entity_r": [],
+    "entity_f": [],
+    "hall_rate": [],
+    "likert": []
+  },
+  "summary": {
+    "model": "openai:gpt-3.5-turbo",
+    "n": 0,
+    "mean_rouge_l_clin": null,
+    "mean_bleu_clin": null,
+    "mean_rouge_l_lay": null,
+    "mean_bleu_lay": null,
+    "mean_entity_p": null,
+    "mean_entity_r": null,
+    "mean_entity_f": null,
+    "mean_hall_rate": null,
+    "mean_likert": null
+  }
+}

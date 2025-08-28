@@ -1,0 +1,142 @@
+Patient: sub-10159
+Modality: MRI (from dataset metadata)
+Diagnosis/Group: unknown
+Age: NA; Sex: NA
+Findings: (derived from dataset / metadata)
+Recommendation: Correlate with clinical phenotype.
+----
+Patient: sub-10171
+Modality: MRI (from dataset metadata)
+Diagnosis/Group: unknown
+Age: NA; Sex: NA
+Findings: (derived from dataset / metadata)
+Recommendation: Correlate with clinical phenotype.
+----
+Patient: sub-10189
+Modality: MRI (from dataset metadata)
+Diagnosis/Group: unknown
+Age: NA; Sex: NA
+Findings: (derived from dataset / metadata)
+Recommendation: Correlate with clinical phenotype.
+----
+Patient: sub-10193
+Modality: MRI (from dataset metadata)
+Diagnosis/Group: unknown
+Age: NA; Sex: NA
+Findings: (derived from dataset / metadata)
+Recommendation: Correlate with clinical phenotype.
+----
+Patient: sub-10206
+Modality: MRI (from dataset metadata)
+Diagnosis/Group: unknown
+Age: NA; Sex: NA
+Findings: (derived from dataset / metadata)
+Recommendation: Correlate with clinical phenotype.
+----
+Patient: sub-10217
+Modality: MRI (from dataset metadata)
+Diagnosis/Group: unknown
+Age: NA; Sex: NA
+Findings: (derived from dataset / metadata)
+Recommendation: Correlate with clinical phenotype.
+----
+Patient: sub-10225
+Modality: MRI (from dataset metadata)
+Diagnosis/Group: unknown
+Age: NA; Sex: NA
+Findings: (derived from dataset / metadata)
+Recommendation: Correlate with clinical phenotype.
+----
+Patient: sub-10227
+Modality: MRI (from dataset metadata)
+Diagnosis/Group: unknown
+Age: NA; Sex: NA
+Findings: (derived from dataset / metadata)
+Recommendation: Correlate with clinical phenotype.
+----
+Patient: sub-10228
+Modality: MRI (from dataset metadata)
+Diagnosis/Group: unknown
+Age: NA; Sex: NA
+Findings: (derived from dataset / metadata)
+Recommendation: Correlate with clinical phenotype.
+----
+Patient: sub-10235
+Modality: MRI (from dataset metadata)
+Diagnosis/Group: unknown
+Age: NA; Sex: NA
+Findings: (derived from dataset / metadata)
+Recommendation: Correlate with clinical phenotype.
+----
+Patient: sub-10249
+Modality: MRI (from dataset metadata)
+Diagnosis/Group: unknown
+Age: NA; Sex: NA
+Findings: (derived from dataset / metadata)
+Recommendation: Correlate with clinical phenotype.
+----
+Patient: sub-10269
+Modality: MRI (from dataset metadata)
+Diagnosis/Group: unknown
+Age: NA; Sex: NA
+Findings: (derived from dataset / metadata)
+Recommendation: Correlate with clinical phenotype.
+----
+Patient: sub-10271
+Modality: MRI (from dataset metadata)
+Diagnosis/Group: unknown
+Age: NA; Sex: NA
+Findings: (derived from dataset / metadata)
+Recommendation: Correlate with clinical phenotype.
+----
+Patient: sub-10273
+Modality: MRI (from dataset metadata)
+Diagnosis/Group: unknown
+Age: NA; Sex: NA
+Findings: (derived from dataset / metadata)
+Recommendation: Correlate with clinical phenotype.
+----
+Patient: sub-10274
+Modality: MRI (from dataset metadata)
+Diagnosis/Group: unknown
+Age: NA; Sex: NA
+Findings: (derived from dataset / metadata)
+Recommendation: Correlate with clinical phenotype.
+----
+Patient: sub-10280
+Modality: MRI (from dataset metadata)
+Diagnosis/Group: unknown
+Age: NA; Sex: NA
+Findings: (derived from dataset / metadata)
+Recommendation: Correlate with clinical phenotype.
+----
+Patient: sub-10290
+Modality: MRI (from dataset metadata)
+Diagnosis/Group: unknown
+Age: NA; Sex: NA
+Findings: (derived from dataset / metadata)
+Recommendation: Correlate with clinical phenotype.
+----
+Patient: sub-10292
+Modality: MRI (from dataset metadata)
+Diagnosis/Group: unknown
+Age: NA; Sex: NA
+Findings: (derived from dataset / metadata)
+Recommendation: Correlate with clinical phenotype.
+----
+Patient: sub-10299
+Modality: MRI (from dataset metadata)
+Diagnosis/Group: unknown
+Age: NA; Sex: NA
+Findings: (derived from dataset / metadata)
+Recommendation: Correlate with clinical phenotype.
+----
+Patient: sub-10304
+Modality: MRI (from dataset metadata)
+Diagnosis/Group: unknown
+Age: NA; Sex: NA
+Findings: (derived from dataset / metadata)
+Recommendation: Correlate with clinical phenotype.
+----
+Patient: sub-10316
+M

@@ -1,0 +1,30 @@
+=== Clinical summary ===
+Clinical Summary:
+
+Patient sub-10235:
+
+* Age: 22 years
+* Sex: Not Available
+
+Findings:
+
+* No acute intracranial hemorrhage is reported in the dataset metadata.
+* Structural MRI:
+	+ No significant abnormalities or lesions are noted in the frontal and temporal lobes.
+* Functional MRI (fMRI):
+	+ No significant activations or deactivations are observed in the frontal and temporal lobes corresponding to the study tasks/phenotypes.
+
+Recommendation:
+
+* Correlate the imaging findings with the clinical phenotype to determine any potential relationships or associations.
+
+=== Lay summary ===
+Here's a summary of the findings in simple language:
+
+You had a special kind of brain scan called an MRI to help doctors understand your brain better. The scan looked at the structure of your brain and how it's working.
+
+The good news is that the scan didn't show any bleeding in your brain that could be causing problems.
+
+The scan also looked at specific parts of your brain that are important for things like thinking, memory, and emotions. These parts are called the frontal lobe and temporal lobe.
+
+The doctors want to compare the results of the scan with how you're feeling and behaving to see if there's a connection between your brain and your symptoms. This will help them better understand what's going on and how to help you.

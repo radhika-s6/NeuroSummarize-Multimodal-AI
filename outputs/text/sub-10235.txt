@@ -1,0 +1,11 @@
+Patient sub-10235
+
+Modality MRI (structural + fMRI where available)
+
+Diagnosis/Group. CONTROL
+
+Age 22, Sex NA
+
+Findings. No acute intracranial hemorrhage reported in dataset metadata
+Regions of interest frontal lobe, temporal lobe (based on study tasks/phenotypes)
+Recommendation: Correlate imaging with clinical phenotype

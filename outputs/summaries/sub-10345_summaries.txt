@@ -1,0 +1,23 @@
+=== Clinical summary ===
+Here is a concise, technically correct clinical summary suitable for radiologists:
+
+**Patient:** sub-10345
+
+**Age:** 25
+
+**Sex:** Not Available
+
+**Imaging Findings:** No acute intracranial hemorrhage is reported in the dataset metadata.
+
+**Regions of Interest:** The frontal lobe and temporal lobe are of interest, based on the study tasks and phenotypes.
+
+**Recommendation:** The imaging findings should be correlated with the patient's clinical phenotype.
+
+=== Lay summary ===
+Here's a summary of the findings in simple language:
+
+This patient, who is 25 years old, had a special kind of brain scan called an MRI. The scan looked at the structure of their brain and how it was working. The results showed that there is no bleeding in the brain that would cause immediate harm.
+
+The scan also focused on two specific areas of the brain: the frontal lobe and the temporal lobe. These areas are important for things like thinking, memory, and emotions.
+
+The doctor recommends comparing the results of the brain scan to the patient's symptoms and how they're feeling. This will help understand how the brain is working and what might be causing any problems they're experiencing.
