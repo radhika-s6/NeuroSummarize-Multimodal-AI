@@ -143,7 +143,10 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+<<<<<<< HEAD
 neuroenv/
+=======
+>>>>>>> 083a63915978ddfa1c90c487a6739eb514f0da05
 
 # Spyder project settings
 .spyderproject
@@ -206,6 +209,7 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+<<<<<<< HEAD
 
 # Dataset
 data/
@@ -426,3 +430,5 @@ data/
 .vscode/
 
 config/config.yaml
+=======
+>>>>>>> 083a63915978ddfa1c90c487a6739eb514f0da05
