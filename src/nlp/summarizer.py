@@ -1,5 +1,6 @@
 import openai
-from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
+from openai import OpenAI
+from transformers import pipeline, AutoTokenizer, AutoModelForSeq2SeqLM
 import torch
 import requests
 import json
@@ -9,7 +10,6 @@ from huggingface_hub import login, whoami
 from dotenv import load_dotenv
 
 load_dotenv()
-HF_TOKEN = os.getenv("HF_TOKEN")
 
 class MultiLLMSummarizer:
     def __init__(self, config):
@@ -18,54 +18,25 @@ class MultiLLMSummarizer:
         self.groq_client = None
         self.local_model = None
         self.local_tokenizer = None
-
         self.setup_clients()
 
     def setup_clients(self):
         """Initialize available LLM clients"""
         # OpenAI
-        openai_key = self.config.get("openai_api_key")
+        openai_key = self.config.get("api_keys", {}).get("openai")
         if openai_key:
             openai.api_key = openai_key
             self.openai_client = openai
 
         # Groq
-        groq_key = self.config.get("groq_api_key")
+        groq_key = self.config.get("api_keys", {}).get("groq")
         if groq_key:
             self.groq_client = Groq(api_key=groq_key)
 
-        # Local model (if specified)
-        if self.config.get('models', {}).get('local', {}).get('model_name'):
-            self.setup_local_model()
-
-
-    def setup_local_model(self):
-        """Setup local Hugging Face model"""
-        try:
-            # Check login status
-            try:
-                user_info = whoami()
-                print(f"Hugging Face: Logged in as {user_info['name']}")
-            except Exception:
-                print("Not logged in to Hugging Face. Attempting login...")
-                login(token=HF_TOKEN, add_to_git_credential=False)
-
-            # Load the model
-            local_cfg = self.config.get("models", {}).get("local", {})
-            model_name = local_cfg.get("model_name", "microsoft/BioGPT-Large")
-
-            self.local_tokenizer = AutoTokenizer.from_pretrained(model_name)
-            self.local_model = AutoModelForCausalLM.from_pretrained(
-                model_name,
-                torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
-                device_map="auto" if local_cfg.get("use_gpu", True) and torch.cuda.is_available() else None
-            )
-        except Exception as e:
-            print(f"Failed to load local model: {e}")
-
-
+    # ----------------------------
+    # Prompt creation
+    # ----------------------------
     def create_prompts(self, text, summary_type="both"):
-        """Create prompts for different summary types"""
         base_prompt = f"""
         You are a medical AI assistant specializing in neuroimaging report analysis.
 
@@ -78,7 +49,7 @@ class MultiLLMSummarizer:
         clinical_prompt = ""
         layperson_prompt = ""
 
-        if summary_type == "clinical" or summary_type == "both":
+        if summary_type in ("clinical", "both"):
             clinical_prompt = """
             1. CLINICAL SUMMARY: A concise technical summary for healthcare professionals including:
                - Key findings
@@ -88,7 +59,7 @@ class MultiLLMSummarizer:
                - Recommendations
             """
 
-        if summary_type == "layperson" or summary_type == "both":
+        if summary_type in ("layperson", "both"):
             layperson_prompt = """
             2. PATIENT-FRIENDLY SUMMARY: A simple explanation for patients/families including:
                - What was found in plain language
@@ -113,7 +84,6 @@ class MultiLLMSummarizer:
         """Summarize using OpenAI API"""
         try:
             prompt = self.create_prompts(text)
-
             response = self.openai_client.ChatCompletion.create(
                 model=model,
                 messages=[
@@ -123,7 +93,6 @@ class MultiLLMSummarizer:
                 max_tokens=1000,
                 temperature=0.3
             )
-
             return {
                 'summary': response.choices[0].message.content,
                 'model': model,
@@ -133,10 +102,9 @@ class MultiLLMSummarizer:
             return {'error': str(e), 'model': model}
 
     def summarize_with_groq(self, text, model="llama3-8b-8192"):
-        """Summarize using Groq API (free tier)"""
+        """Summarize using Groq API"""
         try:
             prompt = self.create_prompts(text)
-
             chat_completion = self.groq_client.chat.completions.create(
                 messages=[
                     {"role": "system", "content": "You are a medical AI assistant."},
@@ -146,7 +114,6 @@ class MultiLLMSummarizer:
                 max_tokens=1000,
                 temperature=0.3
             )
-
             return {
                 'summary': chat_completion.choices[0].message.content,
                 'model': model,
@@ -155,44 +122,12 @@ class MultiLLMSummarizer:
         except Exception as e:
             return {'error': str(e), 'model': model}
 
-    def summarize_with_local_model(self, text):
-        """Summarize using local Hugging Face model"""
-        try:
-            prompt = self.create_prompts(text)
-
-            inputs = self.local_tokenizer.encode(prompt, return_tensors="pt", max_length=512, truncation=True)
-
-            with torch.no_grad():
-                outputs = self.local_model.generate(
-                    inputs,
-                    max_length=1000,
-                    num_return_sequences=1,
-                    temperature=0.7,
-                    do_sample=True,
-                    pad_token_id=self.local_tokenizer.eos_token_id
-                )
-
-            summary = self.local_tokenizer.decode(outputs[0], skip_special_tokens=True)
-
-            return {
-                'summary': summary,
-                'model': 'local_biogpt',
-                'tokens_used': len(inputs[0])
-            }
-        except Exception as e:
-            return {'error': str(e), 'model': 'local'}
-
     def ensemble_summarization(self, text):
         """Try multiple models and return best result"""
         results = {}
-
         if self.openai_client:
             results['openai'] = self.summarize_with_openai(text)
-
         if self.groq_client:
             results['groq'] = self.summarize_with_groq(text)
-
-        if self.local_model:
-            results['local'] = self.summarize_with_local_model(text)
-
+        
         return results

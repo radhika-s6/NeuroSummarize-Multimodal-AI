@@ -3,7 +3,6 @@ import numpy as np
 from PIL import Image
 import easyocr
 import pytesseract
-from transformers import LayoutLMv3Processor, LayoutLMv3ForTokenClassification
 import torch
 from src.utils import preprocessing
 from src.utils.preprocessing import clean_text
@@ -12,8 +11,10 @@ from src.utils.preprocessing import clean_text
 class MultiModalOCR:
     def __init__(self):
         self.easyocr_reader = easyocr.Reader(['en'], verbose=False)
-        self.layoutlm_processor = LayoutLMv3Processor.from_pretrained("microsoft/layoutlmv3-base")
-        self.layoutlm_model = LayoutLMv3ForTokenClassification.from_pretrained("microsoft/layoutlmv3-base")
+        self.layoutlm_processor = None
+        self.layoutlm_model = None
+        # self.layoutlm_processor = LayoutLMv3Processor.from_pretrained("microsoft/layoutlmv3-base")
+        # self.layoutlm_model = LayoutLMv3ForTokenClassification.from_pretrained("microsoft/layoutlmv3-base")
 
     def preprocess_image(self, image_path):
         """Preprocess image for better OCR results"""
@@ -77,17 +78,29 @@ class MultiModalOCR:
         except Exception as e:
             return {'text': '', 'confidence': 0, 'method': 'tesseract', 'error': str(e)}
 
+    def _load_layoutlm(self):
+        """Lazy-load LayoutLMv3 only when needed"""
+        if self.layoutlm_processor is None or self.layoutlm_model is None:
+            # import pytorch
+            from transformers import LayoutLMv3Processor, LayoutLMv3ForTokenClassification  # ✅ import here
+            self.layoutlm_processor = LayoutLMv3Processor.from_pretrained("microsoft/layoutlmv3-base", local_files_only=True)
+            self.layoutlm_model = LayoutLMv3ForTokenClassification.from_pretrained("microsoft/layoutlmv3-base", local_files_only=True)
+            
     def extract_with_layoutlm(self, image_path):
         """Extract text using LayoutLMv3"""
         try:
+            self._load_layoutlm()  # lazy load
+
             image = Image.open(image_path).convert('RGB')
             encoding = self.layoutlm_processor(image, return_tensors="pt")
 
-            with torch.no_grad():
+            with self.torch.no_grad(): 
                 outputs = self.layoutlm_model(**encoding)
 
-            tokens = self.layoutlm_processor.tokenizer.convert_ids_to_tokens(encoding["input_ids"][0])
-            text = self.layoutlm_processor.tokenizer.convert_tokens_to_string(tokens)
+            tokens = self.layoutlm_processor.tokenizer.convert_ids_to_tokens(
+                encoding["input_ids"][0]
+            )
+            text =  self.layoutlm_processor.tokenizer.convert_tokens_to_string(tokens)
 
             return {
                 'text': text.strip(),
@@ -96,6 +109,7 @@ class MultiModalOCR:
             }
         except Exception as e:
             return {'text': '', 'confidence': 0, 'method': 'layoutlm', 'error': str(e)}
+
 
     def ensemble_extraction(self, image_path):
         """Combine results from EasyOCR, Tesseract, and LayoutLM"""

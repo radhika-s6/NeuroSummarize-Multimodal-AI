@@ -2,7 +2,7 @@
 from typing import Dict, Optional, Tuple, Callable, List
 import os
 
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM  # Hugging Face
+# from transformers import AutoTokenizer, AutoModelForSeq2SeqLM  # Hugging Face
 from src.utils.config_loader import load_config, get_api_keys
 
 _cfg = load_config()
@@ -49,6 +49,7 @@ def _strip_prefix(model_id: str) -> str:
 
 def _hf_generator(model_id: str, device: Optional[str]) -> Tuple[Callable[[str, int], str], object]:
     """Returns (generate_fn, tok) for HF seq2seq models (existing behavior)."""
+    from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
     tok = AutoTokenizer.from_pretrained(model_id)
     mod = AutoModelForSeq2SeqLM.from_pretrained(model_id)
     if device:

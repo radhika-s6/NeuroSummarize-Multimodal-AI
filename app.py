@@ -13,15 +13,20 @@ from datetime import timedelta
 import plotly.express as px
 import zipfile
 import io
+import os
 from src.utils.data_loader import EnhancedDataLoader
 from src.utils.enhanced_dataset_processor import EnhancedDatasetProcessor
 
 # Import custom modules
+
 from src.ocr.text_extractor import MultiModalOCR
 from src.nlp.summarizer import MultiLLMSummarizer
 from src.evaluation.metrics import EvaluationMetrics
-from src.utils.data_loader import DataLoader
+from src.utils.data_loader import DataLoader, EnhancedDataLoader
 from src.visualisation.brain_mapper import show_affected_regions, plot_brain_heatmap
+
+os.environ["HF_HUB_DISABLE_TELEMETRY"] = "1"
+os.environ["HF_HUB_OFFLINE"] = "1"
 
 def batch_analysis_page(ocr_system, summarizer, evaluator):
     st.header("Batch Analysis")
@@ -827,7 +832,7 @@ def dataset_processing_page(data_loader, ocr_system, summarizer, evaluator):
             """)
         
         # Sample data generation
-        st.subheader("🎯 Don't have data? Generate sample dataset")
+        st.subheader("Generate sample dataset")
         col1, col2 = st.columns(2)
         
         with col1:
@@ -1070,10 +1075,37 @@ def generate_sample_csv_dataset(num_records=50):
     return pd.DataFrame(patients)
 
 
+# @st.cache_data
+# def load_config():
+#     with open('config/config.yaml', 'r') as file:
+#         return yaml.safe_load(file)
+
+# Set page config first
+st.set_page_config(
+    page_title="NeuroSummarize",
+    page_icon="🧠",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
 @st.cache_data
 def load_config():
-    with open('config/config.yaml', 'r') as file:
-        return yaml.safe_load(file)
+    config_path = Path("config/config.yaml")
+    if config_path.exists():
+        with open(config_path, 'r') as file:
+            return yaml.safe_load(file)
+    else:
+        # Return default config if file doesn't exist
+        return {
+            'api_keys': {
+                'openai': os.getenv('OPENAI_API_KEY'),
+                'groq': os.getenv('GROQ_API_KEY')
+            },
+            'models': {
+                'openai': {'model_name': 'gpt-3.5-turbo'},
+                'groq': {'model_name': 'llama3-8b-8192'}
+            }
+        }
 
 @st.cache_resource
 def initialize_components():
