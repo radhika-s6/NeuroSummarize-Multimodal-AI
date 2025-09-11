@@ -1,0 +1,5 @@
+System,F1 Score,ROUGE-L,Hallucination Rate,F1 vs Target (0.90),ROUGE vs Baseline (0.45),Hallucination vs Target (<0.12),Performance Grade
+tesseract_gpt4,0.744 ± 0.086,0.415 ± 0.051,0.150 ± 0.032,✗,✗,✗,N/A
+layoutlm_clinical,0.828 ± 0.053,0.454 ± 0.038,0.081 ± 0.021,✗,✓,✓,N/A
+textract_gpt4,0.770 ± 0.064,0.482 ± 0.047,0.116 ± 0.029,✗,✓,✓,N/A
+neurosummarize,0.900 ± 0.000,0.629 ± 0.000,0.000 ± 0.000,✓,✓,✓,A (Excellent)
