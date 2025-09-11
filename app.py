@@ -1074,6 +1074,33 @@ def generate_sample_csv_dataset(num_records=50):
     
     return pd.DataFrame(patients)
 
+def show_api_status(config):
+    """Show API status with setup instructions"""
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("API Status")
+    
+    # OpenAI status
+    openai_key = config.get("api_keys", {}).get("openai", "")
+    if openai_key and len(openai_key.strip()) > 10:
+        st.sidebar.success("OpenAI Configured")
+    else:
+        st.sidebar.warning("OpenAI Not Configured")
+    
+    # Groq status  
+    groq_key = config.get("api_keys", {}).get("groq", "")
+    if groq_key and len(groq_key.strip()) > 10:
+        st.sidebar.success("Groq Configured")
+    else:
+        st.sidebar.error("Groq Not Configured")
+        st.sidebar.markdown("Get free API key:")
+        st.sidebar.markdown("1. Go to console.groq.com")
+        st.sidebar.markdown("2. Sign up (free)")
+        st.sidebar.markdown("3. Generate API key")
+        st.sidebar.markdown("4. Add to config.yaml")
+    
+    # Local always works
+    st.sidebar.success("Local Model Available")
+
 
 # @st.cache_data
 # def load_config():
@@ -1095,7 +1122,7 @@ def load_config():
         with open(config_path, 'r') as file:
             return yaml.safe_load(file)
     else:
-        # Return default config if file doesn't exist
+        # Default configuration if file is missing
         return {
             'api_keys': {
                 'openai': os.getenv('OPENAI_API_KEY'),
@@ -1103,7 +1130,8 @@ def load_config():
             },
             'models': {
                 'openai': {'model_name': 'gpt-3.5-turbo'},
-                'groq': {'model_name': 'llama3-8b-8192'}
+                'groq': {'model_name': 'llama3-8b-8192'},
+                'local': {'model_name': 'local_enhanced'}
             }
         }
 
@@ -1119,132 +1147,270 @@ def initialize_components():
 def main():
     st.title("NeuroSummarize: AI-Powered Neuroimaging Report Analysis")
     st.markdown("---")
+    
+    try:
+        ocr_system, summarizer, evaluator, data_loader, config = initialize_components()
+        
+        st.sidebar.title("Navigation")
+        page = st.sidebar.selectbox(
+            "Choose a page",
+            ["Document Processing", "Batch Analysis", "Model Comparison", "Evaluation Dashboard", "Data Generation"]
+        )
+        
+        # Show API status
+        show_api_status(config)
 
-    ocr_system, summarizer, evaluator, data_loader, config = initialize_components()
-
-    st.sidebar.title("Navigation")
-    page = st.sidebar.selectbox(
-        "Choose a page",
-        ["Document Processing", "Batch Analysis", "Model Comparison", "Evaluation Dashboard", "Data Generation"]
-    )
-
-    if page == "Document Processing":
-        document_processing_page(ocr_system, summarizer)
-    elif page == "Batch Analysis":
-        batch_analysis_page(ocr_system, summarizer, evaluator)
-    elif page == "Model Comparison":
-        model_comparison_page(summarizer, evaluator)
-    elif page == "Evaluation Dashboard":
-        evaluation_dashboard_page(evaluator)
-    elif page == "Data Generation":
-        data_generation_page(data_loader)
+        if page == "Document Processing":
+            document_processing_page(ocr_system, summarizer)
+        elif page == "Batch Analysis":
+            batch_analysis_page(ocr_system, summarizer, evaluator)
+        elif page == "Model Comparison":
+            model_comparison_page(summarizer, evaluator)
+        elif page == "Evaluation Dashboard":
+            evaluation_dashboard_page(evaluator)
+        elif page == "Data Generation":
+            data_generation_page(data_loader)
+            
+    except Exception as e:
+        st.error(f"Error initializing application: {str(e)}")
+        st.info("Please check your configuration files and API keys.")
+        st.exception(e)  # This will show the full error for debugging
 
 def document_processing_page(ocr_system, summarizer):
-    st.header("Document Processing")
+    st.header("Document Processing & Brain Mapping")
 
     col1, col2 = st.columns([1, 1])
 
     with col1:
         st.subheader("Upload Document")
+        
+        # Show supported formats
+        with st.expander("Supported File Formats"):
+            st.markdown("""
+            **Images:** PNG, JPG, JPEG, TIFF, BMP (OCR extraction)
+            
+            **Text Files:** TXT, MD, RTF (direct reading)
+            
+            **Documents:** DOCX (structured extraction)
+            
+            **PDFs:** Both text-based and scanned (hybrid extraction)
+            
+            **Data Files:** CSV, XLSX, XLS, JSON, JSONL (structured parsing)
+            """)
+        
         uploaded_file = st.file_uploader(
-            "Choose a neuroimaging report",
-            type=['png', 'jpg', 'jpeg', 'pdf', 'txt'],
-            help="Upload scanned, handwritten, or typed neuroimaging reports"
+            "Choose a file",
+            type=['png', 'jpg', 'jpeg', 'tiff', 'bmp', 'pdf', 'txt', 'md', 'rtf', 'docx', 'csv', 'xlsx', 'xls', 'json'],
+            help="Upload neuroimaging reports in various formats"
         )
 
         if uploaded_file is not None:
-            if uploaded_file.type.startswith('image'):
+            file_type = uploaded_file.type
+            file_size = uploaded_file.size
+            detected_type = ocr_system.detect_file_type(uploaded_file.name)
+            
+            # Display file info
+            col1_1, col1_2 = st.columns(2)
+            with col1_1:
+                st.metric("File Type", detected_type.title())
+            with col1_2:
+                st.metric("Size", f"{file_size / 1024:.1f} KB")
+            
+            # File preview based on type
+            if file_type.startswith('image'):
                 image = Image.open(uploaded_file)
                 st.image(image, caption="Uploaded Image", use_column_width=True)
-
-                if st.button("Extract Text", type="primary"):
-                    with st.spinner("Extracting text..."):
-                        temp_path = f"temp_{uploaded_file.name}"
-                        with open(temp_path, "wb") as f:
-                            f.write(uploaded_file.getvalue())
-
-                        ocr_result = ocr_system.ensemble_extraction(temp_path)
-
-                        st.session_state.extracted_text = ocr_result['final_text']
-                        st.session_state.ocr_confidence = ocr_result['confidence']
-                        st.session_state.best_method = ocr_result['best_method']
-
-                        Path(temp_path).unlink()
-
-            elif uploaded_file.type == 'text/plain':
-                text_content = str(uploaded_file.read(), "utf-8")
-                st.session_state.extracted_text = text_content
-                st.session_state.ocr_confidence = 1.0
-                st.session_state.best_method = "direct_text"
+            elif file_type == 'application/pdf':
+                st.success("PDF file detected - supports both text and scanned PDFs")
+            elif file_type.startswith('text') or uploaded_file.name.endswith(('.txt', '.md', '.rtf')):
+                st.success("Text file detected")
+            elif 'spreadsheet' in file_type or 'excel' in file_type or uploaded_file.name.endswith(('.xlsx', '.xls')):
+                st.success("Spreadsheet file detected")
+            elif 'json' in file_type or uploaded_file.name.endswith('.json'):
+                st.success("JSON data file detected")
+            elif uploaded_file.name.endswith('.docx'):
+                st.success("Word document detected")
+            elif uploaded_file.name.endswith('.csv'):
+                st.success("CSV file detected")
+            
+            # Processing options for specific file types
+            if detected_type == 'pdfs':
+                with st.expander("PDF Processing Options"):
+                    st.info("Auto mode tries direct text extraction first, then OCR if needed")
+            
+            if detected_type == 'images':
+                with st.expander("OCR Options"):
+                    st.info("Ensemble mode combines EasyOCR and Tesseract for best results")
+            
+            # Process button
+            if st.button("Extract Text", type="primary"):
+                with st.spinner(f"Processing {uploaded_file.name}..."):
+                    # Save uploaded file temporarily
+                    temp_path = f"temp_{uploaded_file.name}"
+                    with open(temp_path, "wb") as f:
+                        f.write(uploaded_file.getvalue())
+                    
+                    try:
+                        result = ocr_system.ensemble_extraction(temp_path)
+                        
+                        if result['final_text'] or not result.get('error'):
+                            st.session_state.extracted_text = result['final_text']
+                            st.session_state.confidence = result.get('confidence', 1.0)
+                            st.session_state.method = result.get('best_method', 'unknown')
+                            st.session_state.file_type = detected_type
+                            st.session_state.processing_details = result.get('all_results', {})
+                            
+                            st.success(f"Text extracted successfully using {result.get('best_method', 'unknown method')}")
+                            
+                            # Show additional info for specific file types
+                            if detected_type == 'pdfs' and 'pdf' in result.get('all_results', {}):
+                                pdf_result = result['all_results']['pdf']
+                                if pdf_result.get('pages_processed'):
+                                    st.info(f"Processed {pdf_result['pages_processed']} pages")
+                        else:
+                            st.error(f"Processing failed: {result.get('error', 'Unknown error')}")
+                    
+                    except Exception as e:
+                        st.error(f"Processing failed: {str(e)}")
+                    
+                    finally:
+                        # Cleanup temp file
+                        if os.path.exists(temp_path):
+                            os.unlink(temp_path)
 
     with col2:
         st.subheader("Extracted Text")
+        
         if 'extracted_text' in st.session_state:
+            # Show processing details
+            details_col1, details_col2, details_col3 = st.columns(3)
+            
+            with details_col1:
+                st.metric("Confidence", f"{st.session_state.confidence:.2f}")
+            with details_col2:
+                st.metric("Method", st.session_state.method.replace('_', ' ').title())
+            with details_col3:
+                st.metric("Type", st.session_state.file_type.title())
+            
+            # Text display
+            text_length = len(st.session_state.extracted_text)
             st.text_area(
-                "Extracted Content",
+                f"Extracted Content ({text_length:,} characters)",
                 st.session_state.extracted_text,
                 height=300,
-                help=f"Confidence: {st.session_state.ocr_confidence:.2f} | Method: {st.session_state.best_method}"
+                help=f"Extracted using {st.session_state.method}"
             )
 
-            st.subheader("Summarization Options")
-            summary_type = st.selectbox("Summary Type", ["both", "clinical", "layperson"])
-            model_choice = st.selectbox("Model Selection", ["ensemble", "openai", "groq", "local"])
+            st.subheader("Analysis Options")
+            analysis_col1, analysis_col2 = st.columns(2)
+            
+            with analysis_col1:
+                summary_type = st.selectbox("Summary Type", ["both", "clinical", "layperson"])
+            with analysis_col2:
+                model_choice = st.selectbox("Model Selection", ["ensemble", "openai", "groq", "local"])
 
-            if st.button("Generate Summary", type="primary"):
-                with st.spinner("Generating summary..."):
-                    if model_choice == "ensemble":
-                        results = summarizer.ensemble_summarization(st.session_state.extracted_text)
-                        st.session_state.summary_results = results
-                    else:
-                        if model_choice == "openai":
-                            result = summarizer.summarize_with_openai(st.session_state.extracted_text)
-                        elif model_choice == "groq":
-                            result = summarizer.summarize_with_groq(st.session_state.extracted_text)
+            if st.button("Generate Analysis", type="primary"):
+                with st.spinner("Generating analysis..."):
+                    try:
+                        if model_choice == "ensemble":
+                            results = summarizer.ensemble_summarization(st.session_state.extracted_text)
+                            st.session_state.summary_results = results
                         else:
-                            result = summarizer.summarize_with_local_model(st.session_state.extracted_text)
+                            if model_choice == "openai":
+                                result = summarizer.summarize_with_openai(st.session_state.extracted_text)
+                            elif model_choice == "groq":
+                                result = summarizer.summarize_with_groq(st.session_state.extracted_text)
+                            else:
+                                result = summarizer.summarize_with_local_model(st.session_state.extracted_text)
+                            st.session_state.summary_results = {model_choice: result}
+                    except Exception as e:
+                        st.error(f"Analysis failed: {str(e)}")
 
-                        st.session_state.summary_results = {model_choice: result}
-
+    # Results section (keep existing brain mapping code)
     if 'summary_results' in st.session_state:
         st.markdown("---")
-        st.header("Results")
+        st.header("Analysis Results & Brain Mapping")
 
-        for model_name, result in st.session_state.summary_results.items():
-            if 'error' not in result:
-                with st.expander(f"{model_name.upper()} Results", expanded=True):
-                    st.markdown(f"**Model:** {result['model']}")
-                    st.markdown(f"**Tokens Used:** {result.get('tokens_used', 'N/A')}")
+        tab1, tab2, tab3 = st.tabs(["AI Summaries", "Brain Mapping", "Detailed Analysis"])
 
-                    summary_text = result['summary']
+        with tab1:
+            for model_name, result in st.session_state.summary_results.items():
+                if 'error' not in result:
+                    with st.expander(f"{model_name.upper()} Results", expanded=True):
+                        result_col1, result_col2 = st.columns([2, 1])
+                        
+                        with result_col1:
+                            st.markdown(f"**Model:** {result['model']}")
+                            st.markdown(f"**Tokens Used:** {result.get('tokens_used', 'N/A')}")
+                            
+                            summary_text = result['summary']
+                            st.text_area(
+                                "Generated Summary",
+                                summary_text,
+                                height=200,
+                                key=f"summary_{model_name}"
+                            )
+                        
+                        with result_col2:
+                            try:
+                                json_match = re.search(r'\{.*\}', summary_text, re.DOTALL)
+                                if json_match:
+                                    json_data = json.loads(json_match.group())
+                                    st.json(json_data)
+                                    
+                                    st.session_state.brain_regions = json_data.get('brain_regions', [])
+                                    st.session_state.findings = json_data.get('findings', [])
+                            except:
+                                st.info("No structured data found")
+                else:
+                    st.error(f"Error with {model_name}: {result['error']}")
 
-                    try:
-                        json_match = re.search(r'\{.*\}', summary_text, re.DOTALL)
-                        if json_match:
-                            json_data = json.loads(json_match.group())
-
-                            col1, col2 = st.columns([1, 1])
-                            with col1:
-                                st.json(json_data)
-
-                            with col2:
-                                if 'brain_regions' in json_data:
-                                    regions = json_data['brain_regions']
-                                    if isinstance(regions, list) and regions:
-                                        st.subheader("Brain Region Visualization")
-                                        show_affected_regions(regions)
-                                        plot_brain_heatmap(regions)
-                    except:
-                        pass
-
-                    st.text_area(
-                        "Generated Summary",
-                        summary_text,
-                        height=200,
-                        key=f"summary_{model_name}"
-                    )
+        with tab2:
+            st.subheader("Interactive Brain Region Mapping")
+            
+            if 'brain_regions' in st.session_state and st.session_state.brain_regions:
+                findings_text = ', '.join(st.session_state.get('findings', [])) if 'findings' in st.session_state else None
+                show_affected_regions(st.session_state.brain_regions, findings_text)
+                
+                if len(st.session_state.brain_regions) > 1:
+                    st.subheader("Region Analysis")
+                    plot_brain_heatmap(st.session_state.brain_regions)
             else:
-                st.error(f"Error with {model_name}: {result['error']}")
+                st.info("No brain regions detected in the analysis.")
+                from src.visualisation.brain_mapper import create_interactive_brain_map
+                sample_fig = create_interactive_brain_map([], None)
+                st.plotly_chart(sample_fig, use_container_width=True)
+
+        with tab3:
+            st.subheader("Detailed Analysis")
+            
+            if 'summary_results' in st.session_state:
+                models_data = []
+                for model_name, result in st.session_state.summary_results.items():
+                    if 'error' not in result:
+                        models_data.append({
+                            'Model': model_name.title(),
+                            'Tokens Used': result.get('tokens_used', 0),
+                            'Summary Length': len(result.get('summary', '')),
+                            'Status': 'Success'
+                        })
+                    else:
+                        models_data.append({
+                            'Model': model_name.title(),
+                            'Tokens Used': 0,
+                            'Summary Length': 0,
+                            'Status': 'Error'
+                        })
+                
+                if models_data:
+                    df = pd.DataFrame(models_data)
+                    st.dataframe(df, use_container_width=True)
+                    
+                    if len(models_data) > 1:
+                        fig = px.bar(df, x='Model', y='Summary Length', 
+                                   title='Model Performance Comparison',
+                                   color='Status')
+                        st.plotly_chart(fig, use_container_width=True)
 
 if __name__ == "__main__":
     main()
