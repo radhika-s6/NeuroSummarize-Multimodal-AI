@@ -34,18 +34,18 @@ class MultiLLMSummarizer:
             openai_key = self.config.get("api_keys", {}).get("openai", "") or os.getenv("OPENAI_API_KEY", "")
             if openai_key and openai_key.strip() and len(openai_key) > 10:
                 self.openai_client = OpenAI(api_key=openai_key)
-                print("✅ OpenAI client initialized successfully")
+                print("OpenAI client initialized successfully")
             else:
-                print("⚠️ OpenAI not configured - no valid API key")
+                print("OpenAI not configured - no valid API key")
                 self.openai_client = None
         except Exception as e:
-            print(f"❌ OpenAI setup failed: {e}")
+            print(f"OpenAI setup failed: {e}")
             self.openai_client = None
 
         # Groq setup with detailed debugging
         try:
             if not GROQ_AVAILABLE:
-                print("❌ Groq library not available. Install with: pip install groq")
+                print("Groq library not available. Install with: pip install groq")
                 self.groq_client = None
                 return
             
@@ -55,12 +55,12 @@ class MultiLLMSummarizer:
             # Try config file first
             if self.config and "api_keys" in self.config:
                 groq_key = self.config["api_keys"].get("groq", "")
-                print(f"🔍 Config file groq key: {'Found' if groq_key else 'Not found'}")
+                print(f"Config file groq key: {'Found' if groq_key else 'Not found'}")
             
             # Try environment variable
             if not groq_key:
                 groq_key = os.getenv("GROQ_API_KEY", "")
-                print(f"🔍 Environment groq key: {'Found' if groq_key else 'Not found'}")
+                print(f"Environment groq key: {'Found' if groq_key else 'Not found'}")
             
             # Validate key
             if groq_key and groq_key.strip() and len(groq_key) > 10 and groq_key != "your-groq-key-here":
@@ -73,23 +73,23 @@ class MultiLLMSummarizer:
                     model="llama3-8b-8192",
                     max_tokens=10
                 )
-                print("✅ Groq client initialized and tested successfully")
+                print("Groq client initialized and tested successfully")
                 
             else:
-                print("⚠️ Groq not configured - invalid or missing API key")
+                print("Groq not configured - invalid or missing API key")
                 print(f"Key length: {len(groq_key) if groq_key else 0}")
                 self.groq_client = None
                 
         except Exception as e:
-            print(f"❌ Groq setup failed: {e}")
+            print(f"Groq setup failed: {e}")
             print(f"Error type: {type(e).__name__}")
             self.groq_client = None
 
         # Local model setup
         try:
-            print("🔧 Local model ready (fallback)")
+            print("Local model ready (fallback)")
         except Exception as e:
-            print(f"❌ Local model setup failed: {e}")
+            print(f"Local model setup failed: {e}")
 
     def is_groq_available(self):
         """Check if Groq client is properly initialized"""
@@ -138,6 +138,7 @@ Report: {text}"""
                 return {'error': 'OpenAI quota exceeded. Add billing or use Groq (free)', 'model': model}
             else:
                 return {'error': f'OpenAI error: {error_msg}', 'model': model}
+            
 
     def summarize_with_groq(self, text, model="llama-3.1-8b-instant"):
         """Groq summarization with current working models"""
@@ -153,7 +154,7 @@ Report: {text}"""
                 }
             }
     
-        # Updated list of current working models (December 2024)
+        # List of current working groq models
         working_models = [
             "llama-3.1-8b-instant",      # Current default - fast and reliable
             "llama-3.1-70b-versatile",   # More capable but slower
